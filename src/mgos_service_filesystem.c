@@ -3,18 +3,16 @@
  * All rights reserved
  */
 
-#if MGOS_ENABLE_RPC
-
 #include <stdlib.h>
+
+#include "mgos_service_filesystem.h"
+#include "mgos_rpc.h"
 
 #include "common/cs_file.h"
 #include "common/json_utils.h"
 #include "common/mg_str.h"
 #include "fw/src/mgos_config.h"
-#include "fw/src/mgos_rpc.h"
 #include "fw/src/mgos_sys_config.h"
-
-#include "mgos_service_filesystem.h"
 
 #if MG_ENABLE_DIRECTORY_LISTING
 
@@ -318,5 +316,3 @@ bool mgos_rpc_service_fs_init(void) {
                      NULL);
   return true;
 }
-
-#endif /* MGOS_ENABLE_RPC */
