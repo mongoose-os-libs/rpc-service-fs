@@ -243,7 +243,7 @@ static void mgos_fs_put_handler(struct mg_rpc_request_info *ri, void *cb_arg,
     goto clean;
   }
 
-  mg_rpc_send_responsef(ri, NULL);
+  mg_rpc_send_errorf(ri, 0, NULL);
   ri = NULL;
 
 clean:
@@ -291,7 +291,7 @@ static void mgos_fs_remove_handler(struct mg_rpc_request_info *ri, void *cb_arg,
     goto clean;
   }
 
-  mg_rpc_send_responsef(ri, NULL);
+  mg_rpc_send_errorf(ri, 0, NULL);
   ri = NULL;
 
 clean:
