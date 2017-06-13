@@ -1,4 +1,4 @@
-# RPC Filesystem Service
+# RPC Service - Filesystem
 
 This service provides an ability to manage device files remotely.
 It is required by the `mos ls`, `mos get`, `mos put`, `mos rm` commands.
