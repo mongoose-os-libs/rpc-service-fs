@@ -13,6 +13,7 @@
 #include "common/mg_str.h"
 #include "fw/src/mgos_config.h"
 #include "fw/src/mgos_sys_config.h"
+#include "fw/src/mgos_vfs.h"
 
 #if MG_ENABLE_DIRECTORY_LISTING
 
@@ -305,6 +306,117 @@ clean:
   (void) cb_arg;
 }
 
+static void mgos_fs_mkfs_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                 struct mg_rpc_frame_info *fi,
+                                 struct mg_str args) {
+  char *dev_type = NULL, *dev_opts = NULL;
+  char *fs_type = NULL, *fs_opts = NULL;
+
+  if (!fi->channel_is_trusted) {
+    mg_rpc_send_errorf(ri, 403, "unauthorized");
+    ri = NULL;
+    goto clean;
+  }
+
+  json_scanf(args.p, args.len, ri->args_fmt, &dev_type, &dev_opts, &fs_type,
+             &fs_opts);
+
+  if (dev_type == NULL || fs_type == NULL) {
+    mg_rpc_send_errorf(ri, 400, "dev_type and fs_type is required");
+    ri = NULL;
+    goto clean;
+  }
+
+  if (!mgos_vfs_mkfs(dev_type, dev_opts, fs_type, fs_opts)) {
+    mg_rpc_send_errorf(ri, 500, "mkfs failed");
+    ri = NULL;
+    goto clean;
+  }
+
+  mg_rpc_send_errorf(ri, 0, NULL);
+  ri = NULL;
+
+clean:
+  free(dev_type);
+  free(dev_opts);
+  free(fs_type);
+  free(fs_opts);
+  (void) cb_arg;
+}
+
+static void mgos_fs_mount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                  struct mg_rpc_frame_info *fi,
+                                  struct mg_str args) {
+  char *path = NULL;
+  char *dev_type = NULL, *dev_opts = NULL;
+  char *fs_type = NULL, *fs_opts = NULL;
+
+  if (!fi->channel_is_trusted) {
+    mg_rpc_send_errorf(ri, 403, "unauthorized");
+    ri = NULL;
+    goto clean;
+  }
+
+  json_scanf(args.p, args.len, ri->args_fmt, &path, &dev_type, &dev_opts,
+             &fs_type, &fs_opts);
+
+  if (path == NULL || dev_type == NULL || fs_type == NULL) {
+    mg_rpc_send_errorf(ri, 400, "path, dev_type and fs_type is required");
+    ri = NULL;
+    goto clean;
+  }
+
+  if (!mgos_vfs_mount(path, dev_type, dev_opts, fs_type, fs_opts)) {
+    mg_rpc_send_errorf(ri, 500, "mount failed");
+    ri = NULL;
+    goto clean;
+  }
+
+  mg_rpc_send_errorf(ri, 0, NULL);
+  ri = NULL;
+
+clean:
+  free(path);
+  free(dev_type);
+  free(dev_opts);
+  free(fs_type);
+  free(fs_opts);
+  (void) cb_arg;
+}
+
+static void mgos_fs_umount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                  struct mg_rpc_frame_info *fi,
+                                  struct mg_str args) {
+  char *path = NULL;
+
+  if (!fi->channel_is_trusted) {
+    mg_rpc_send_errorf(ri, 403, "unauthorized");
+    ri = NULL;
+    goto clean;
+  }
+
+  json_scanf(args.p, args.len, ri->args_fmt, &path);
+
+  if (path == NULL) {
+    mg_rpc_send_errorf(ri, 400, "path is required");
+    ri = NULL;
+    goto clean;
+  }
+
+  if (!mgos_vfs_umount(path)) {
+    mg_rpc_send_errorf(ri, 500, "umount failed");
+    ri = NULL;
+    goto clean;
+  }
+
+  mg_rpc_send_errorf(ri, 0, NULL);
+  ri = NULL;
+
+clean:
+  free(path);
+  (void) cb_arg;
+}
+
 bool mgos_rpc_service_fs_init(void) {
   struct mg_rpc *c = mgos_rpc_get_global();
 #if MG_ENABLE_DIRECTORY_LISTING
@@ -318,5 +430,13 @@ bool mgos_rpc_service_fs_init(void) {
                      mgos_fs_put_handler, NULL);
   mg_rpc_add_handler(c, "FS.Remove", "{filename: %Q}", mgos_fs_remove_handler,
                      NULL);
+  mg_rpc_add_handler(c, "FS.Mkfs",
+                     "{dev_type: %Q, dev_opts: %Q, fs_type: %Q, fs_opts: %Q}",
+                     mgos_fs_mkfs_handler, NULL);
+  mg_rpc_add_handler(
+      c, "FS.Mount",
+      "{path: %Q, dev_type: %Q, dev_opts: %Q, fs_type: %Q, fs_opts: %Q}",
+      mgos_fs_mount_handler, NULL);
+  mg_rpc_add_handler(c, "FS.Umount", "{path: %Q}", mgos_fs_umount_handler, NULL);
   return true;
 }
