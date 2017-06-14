@@ -309,7 +309,8 @@ bool mgos_rpc_service_fs_init(void) {
   struct mg_rpc *c = mgos_rpc_get_global();
 #if MG_ENABLE_DIRECTORY_LISTING
   mg_rpc_add_handler(c, "FS.List", "{path: %Q}", mgos_fs_list_handler, NULL);
-  mg_rpc_add_handler(c, "FS.ListExt", "{path: %Q}", mgos_fs_list_ext_handler, NULL);
+  mg_rpc_add_handler(c, "FS.ListExt", "{path: %Q}", mgos_fs_list_ext_handler,
+                     NULL);
 #endif
   mg_rpc_add_handler(c, "FS.Get", "{filename: %Q, offset: %ld, len: %ld}",
                      mgos_fs_get_handler, NULL);
