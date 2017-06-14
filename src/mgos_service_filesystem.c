@@ -23,10 +23,12 @@
 #endif
 
 /* Handler for FS.List */
-static void mgos_fs_list_common(struct mg_rpc_request_info *ri,
+static void mgos_fs_list_common(const struct mg_str args,
+                                struct mg_rpc_request_info *ri,
                                 struct mg_rpc_frame_info *fi, bool ext) {
   struct mbuf fb;
   struct json_out out = JSON_OUT_MBUF(&fb);
+  char *path = NULL;
   DIR *dirp;
 
   mbuf_init(&fb, 50);
@@ -37,9 +39,11 @@ static void mgos_fs_list_common(struct mg_rpc_request_info *ri,
     return;
   }
 
+  json_scanf(args.p, args.len, ri->args_fmt, &path);
+
   json_printf(&out, "[");
 
-  if ((dirp = (opendir("." /*not really used by SPIFFS*/))) != NULL) {
+  if ((dirp = (opendir(path ? path : "/"))) != NULL) {
     struct dirent *dp;
     int i;
     for (i = 0; (dp = readdir(dirp)) != NULL; i++) {
@@ -71,22 +75,21 @@ static void mgos_fs_list_common(struct mg_rpc_request_info *ri,
   ri = NULL;
 
   mbuf_free(&fb);
+  free(path);
 }
 
 static void mgos_fs_list_handler(struct mg_rpc_request_info *ri, void *cb_arg,
                                  struct mg_rpc_frame_info *fi,
                                  struct mg_str args) {
-  mgos_fs_list_common(ri, fi, false /* ext */);
+  mgos_fs_list_common(args, ri, fi, false /* ext */);
   (void) cb_arg;
-  (void) args;
 }
 
 static void mgos_fs_list_ext_handler(struct mg_rpc_request_info *ri,
                                      void *cb_arg, struct mg_rpc_frame_info *fi,
                                      struct mg_str args) {
-  mgos_fs_list_common(ri, fi, true /* ext */);
+  mgos_fs_list_common(args, ri, fi, true /* ext */);
   (void) cb_arg;
-  (void) args;
 }
 #endif /* MG_ENABLE_DIRECTORY_LISTING */
 
@@ -305,8 +308,8 @@ clean:
 bool mgos_rpc_service_fs_init(void) {
   struct mg_rpc *c = mgos_rpc_get_global();
 #if MG_ENABLE_DIRECTORY_LISTING
-  mg_rpc_add_handler(c, "FS.List", "", mgos_fs_list_handler, NULL);
-  mg_rpc_add_handler(c, "FS.ListExt", "", mgos_fs_list_ext_handler, NULL);
+  mg_rpc_add_handler(c, "FS.List", "{path: %Q}", mgos_fs_list_handler, NULL);
+  mg_rpc_add_handler(c, "FS.ListExt", "{path: %Q}", mgos_fs_list_ext_handler, NULL);
 #endif
   mg_rpc_add_handler(c, "FS.Get", "{filename: %Q, offset: %ld, len: %ld}",
                      mgos_fs_get_handler, NULL);
