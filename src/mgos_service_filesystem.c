@@ -47,7 +47,7 @@ static void mgos_fs_list_common(const struct mg_str args,
   if ((dirp = (opendir(path ? path : "/"))) != NULL) {
     struct dirent *dp;
     int i;
-    for (i = 0; (dp = readdir(dirp)) != NULL; i++) {
+    for (i = 0; (dp = readdir(dirp)) != NULL;) {
       /* Do not show current and parent dirs */
       if (strcmp((const char *) dp->d_name, ".") == 0 ||
           strcmp((const char *) dp->d_name, "..") == 0) {
@@ -59,13 +59,19 @@ static void mgos_fs_list_common(const struct mg_str args,
       }
       if (ext) {
         cs_stat_t st;
-        if (mg_stat(dp->d_name, &st) == 0) {
+        char fname[MG_MAX_PATH];
+        snprintf(fname, sizeof(fname), "%s%s%s", (path ? path : "/"),
+                 (path ? "/" : ""), dp->d_name);
+        if (mg_stat(fname, &st) == 0) {
           json_printf(&out, "{name: %Q, size: %llu}", dp->d_name,
                       (uint64_t) st.st_size);
+        } else {
+          continue;
         }
       } else {
         json_printf(&out, "%Q", dp->d_name);
       }
+      i++;
     }
     closedir(dirp);
   }
