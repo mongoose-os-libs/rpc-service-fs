@@ -385,8 +385,8 @@ clean:
 }
 
 static void mgos_fs_umount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
-                                  struct mg_rpc_frame_info *fi,
-                                  struct mg_str args) {
+                                   struct mg_rpc_frame_info *fi,
+                                   struct mg_str args) {
   char *path = NULL;
 
   if (!fi->channel_is_trusted) {
@@ -437,6 +437,7 @@ bool mgos_rpc_service_fs_init(void) {
       c, "FS.Mount",
       "{path: %Q, dev_type: %Q, dev_opts: %Q, fs_type: %Q, fs_opts: %Q}",
       mgos_fs_mount_handler, NULL);
-  mg_rpc_add_handler(c, "FS.Umount", "{path: %Q}", mgos_fs_umount_handler, NULL);
+  mg_rpc_add_handler(c, "FS.Umount", "{path: %Q}", mgos_fs_umount_handler,
+                     NULL);
   return true;
 }
