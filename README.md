@@ -107,3 +107,43 @@ Delete file. Arguments:
 
 This RPC command has a shortcut: `mos rm`:
 <pre class="command-line language-bash" data-user="chris" data-host="localhost" data-output="2-100"><code>mos rm foo.txt</code></pre>
+
+
+## FS.Mkfs
+Create filesystem. Arguments:
+```json
+{
+  "dev_type": "spi_flash",          // Required. Filesystem driver name.
+  "dev_opts": "...",                // Required. Device-specific options.
+  "fs_type": "SPIFFS",              // Required. Filesystem type.
+  "fs_opts": "{\"site\": 131072}"   // Required. Filesystem-specific options.
+}
+```
+
+Example usage:
+<pre class="command-line language-bash" data-user="chris" data-host="localhost" data-output="2-100"><code>mos call FS.Mkfs '{"dev_type": "spi_flash", "dev_opts": "{\"freq\": 20000000, \"cs\": 0}", "fs_type": "SPIFFS", "fs_opts": "{\"size\": 131072}'</code></pre>
+
+## FS.Mount
+Mount filesystem. Arguments:
+```json
+{
+  "path": "/foo",           // Required. Directory name to attach to.
+  "dev_type": "...",        // See FS.Mkfs above
+  "dev_opts": "...",
+  "fs_type": "SPIFFS",
+  "fs_opts": "..."
+}
+```
+
+<pre class="command-line language-bash" data-user="chris" data-host="localhost" data-output="2-100"><code>mos call FS.Mount '{"path": "/mnt", "dev_type": "spi_flash", "dev_opts": "{\"freq\": 20000000, \"cs\": 0}", "fs_type": "SPIFFS", "fs_opts": "{\"size\": 131072}"}'</code></pre>
+
+
+## FS.Umount
+Unmout filesystem. Arguments:
+```json
+{
+  "path": "/foo"           // Required. Mount point to detach.
+}
+```
+
+<pre class="command-line language-bash" data-user="chris" data-host="localhost" data-output="2-100"><code>mos call FS.Mount '{"path": "/mnt"}'</code></pre>
