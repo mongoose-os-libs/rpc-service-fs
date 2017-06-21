@@ -253,7 +253,9 @@ static void mgos_fs_put_handler(struct mg_rpc_request_info *ri, void *cb_arg,
     goto clean;
   }
 
-  mg_rpc_send_errorf(ri, 0, NULL);
+  LOG(LL_INFO, ("%s %d bytes to %s", append ? "Appended" : "Written", data.len,
+                filename));
+  mg_rpc_send_responsef(ri, NULL);
   ri = NULL;
 
 clean:
@@ -301,7 +303,7 @@ static void mgos_fs_remove_handler(struct mg_rpc_request_info *ri, void *cb_arg,
     goto clean;
   }
 
-  mg_rpc_send_errorf(ri, 0, NULL);
+  mg_rpc_send_responsef(ri, NULL);
   ri = NULL;
 
 clean:
@@ -339,7 +341,7 @@ static void mgos_fs_mkfs_handler(struct mg_rpc_request_info *ri, void *cb_arg,
     goto clean;
   }
 
-  mg_rpc_send_errorf(ri, 0, NULL);
+  mg_rpc_send_responsef(ri, NULL);
   ri = NULL;
 
 clean:
@@ -378,7 +380,7 @@ static void mgos_fs_mount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
     goto clean;
   }
 
-  mg_rpc_send_errorf(ri, 0, NULL);
+  mg_rpc_send_responsef(ri, NULL);
   ri = NULL;
 
 clean:
@@ -415,7 +417,7 @@ static void mgos_fs_umount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
     goto clean;
   }
 
-  mg_rpc_send_errorf(ri, 0, NULL);
+  mg_rpc_send_responsef(ri, NULL);
   ri = NULL;
 
 clean:
