@@ -11,9 +11,9 @@
 #include "common/cs_file.h"
 #include "common/json_utils.h"
 #include "common/mg_str.h"
-#include "fw/src/mgos_config.h"
-#include "fw/src/mgos_sys_config.h"
-#include "fw/src/mgos_vfs.h"
+#include "mgos_config.h"
+#include "mgos_sys_config.h"
+#include "mgos_vfs.h"
 
 #if MG_ENABLE_DIRECTORY_LISTING
 
