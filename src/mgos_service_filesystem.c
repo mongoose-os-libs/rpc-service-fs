@@ -11,7 +11,7 @@
 #include "common/cs_file.h"
 #include "common/json_utils.h"
 #include "common/mg_str.h"
-#include "mgos_config.h"
+#include "mgos_config_util.h"
 #include "mgos_sys_config.h"
 #include "mgos_vfs.h"
 

@@ -19,7 +19,7 @@ Example usage:
 
 <pre class="command-line language-bash" data-user="chris" data-host="localhost" data-output="2-100"><code>mos call FS.List
 [
-  "sys_ro_vars_schema.json",
+  "mgos_ro_vars_schema.json",
   "conf0.json",
   ...
 ]</code></pre>
@@ -27,7 +27,7 @@ Example usage:
 This RPC command has a shortcut: `mos ls`:
 
 <pre class="command-line language-bash" data-user="chris" data-host="localhost" data-output="2-100"><code>mos ls
-"sys_ro_vars_schema.json",
+"mgos_ro_vars_schema.json",
 "conf0.json",
 ...</code></pre>
 
@@ -41,7 +41,7 @@ Example usage:
 <pre class="command-line language-bash" data-user="chris" data-host="localhost" data-output="2-100"><code>mos call FS.ListExt
 [
   {
-    "name": "sys_ro_vars_schema.json",
+    "name": "mgos_ro_vars_schema.json",
     "size": 332
   },
   ...
