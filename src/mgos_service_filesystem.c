@@ -25,20 +25,13 @@
 
 /* Handler for FS.List */
 static void mgos_fs_list_common(const struct mg_str args,
-                                struct mg_rpc_request_info *ri,
-                                struct mg_rpc_frame_info *fi, bool ext) {
+                                struct mg_rpc_request_info *ri, bool ext) {
   struct mbuf fb;
   struct json_out out = JSON_OUT_MBUF(&fb);
   char *path = NULL;
   DIR *dirp;
 
   mbuf_init(&fb, 50);
-
-  if (!fi->channel_is_trusted) {
-    mg_rpc_send_errorf(ri, 403, "unauthorized");
-    ri = NULL;
-    return;
-  }
 
   json_scanf(args.p, args.len, ri->args_fmt, &path);
 
@@ -88,15 +81,17 @@ static void mgos_fs_list_common(const struct mg_str args,
 static void mgos_fs_list_handler(struct mg_rpc_request_info *ri, void *cb_arg,
                                  struct mg_rpc_frame_info *fi,
                                  struct mg_str args) {
-  mgos_fs_list_common(args, ri, fi, false /* ext */);
+  mgos_fs_list_common(args, ri, false /* ext */);
   (void) cb_arg;
+  (void) fi;
 }
 
 static void mgos_fs_list_ext_handler(struct mg_rpc_request_info *ri,
                                      void *cb_arg, struct mg_rpc_frame_info *fi,
                                      struct mg_str args) {
-  mgos_fs_list_common(args, ri, fi, true /* ext */);
+  mgos_fs_list_common(args, ri, true /* ext */);
   (void) cb_arg;
+  (void) fi;
 }
 #endif /* MG_ENABLE_DIRECTORY_LISTING */
 
@@ -108,12 +103,6 @@ static void mgos_fs_get_handler(struct mg_rpc_request_info *ri, void *cb_arg,
   long file_size = 0;
   FILE *fp = NULL;
   char *data = NULL;
-
-  if (!fi->channel_is_trusted) {
-    mg_rpc_send_errorf(ri, 403, "unauthorized");
-    ri = NULL;
-    goto clean;
-  }
 
   json_scanf(args.p, args.len, ri->args_fmt, &filename, &offset, &len);
 
@@ -203,6 +192,7 @@ clean:
   }
 
   (void) cb_arg;
+  (void) fi;
 }
 
 struct put_data {
@@ -217,12 +207,6 @@ static void mgos_fs_put_handler(struct mg_rpc_request_info *ri, void *cb_arg,
   int append = 0;
   FILE *fp = NULL;
   struct put_data data = {NULL, 0};
-
-  if (!fi->channel_is_trusted) {
-    mg_rpc_send_errorf(ri, 403, "unauthorized");
-    ri = NULL;
-    goto clean;
-  }
 
   json_scanf(args.p, args.len, ri->args_fmt, &filename, &data.p, &data.len,
              &append);
@@ -272,6 +256,7 @@ clean:
   }
 
   (void) cb_arg;
+  (void) fi;
 }
 
 static void mgos_fs_remove_handler(struct mg_rpc_request_info *ri, void *cb_arg,
@@ -279,12 +264,6 @@ static void mgos_fs_remove_handler(struct mg_rpc_request_info *ri, void *cb_arg,
                                    struct mg_str args) {
   int ret = 0;
   char *filename = NULL;
-
-  if (!fi->channel_is_trusted) {
-    mg_rpc_send_errorf(ri, 403, "unauthorized");
-    ri = NULL;
-    goto clean;
-  }
 
   json_scanf(args.p, args.len, ri->args_fmt, &filename);
 
@@ -312,6 +291,7 @@ clean:
   }
 
   (void) cb_arg;
+  (void) fi;
 }
 
 static void mgos_fs_mkfs_handler(struct mg_rpc_request_info *ri, void *cb_arg,
@@ -319,12 +299,6 @@ static void mgos_fs_mkfs_handler(struct mg_rpc_request_info *ri, void *cb_arg,
                                  struct mg_str args) {
   char *dev_type = NULL, *dev_opts = NULL;
   char *fs_type = NULL, *fs_opts = NULL;
-
-  if (!fi->channel_is_trusted) {
-    mg_rpc_send_errorf(ri, 403, "unauthorized");
-    ri = NULL;
-    goto clean;
-  }
 
   json_scanf(args.p, args.len, ri->args_fmt, &dev_type, &dev_opts, &fs_type,
              &fs_opts);
@@ -350,6 +324,7 @@ clean:
   free(fs_type);
   free(fs_opts);
   (void) cb_arg;
+  (void) fi;
 }
 
 static void mgos_fs_mount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
@@ -358,12 +333,6 @@ static void mgos_fs_mount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
   char *path = NULL;
   char *dev_type = NULL, *dev_opts = NULL;
   char *fs_type = NULL, *fs_opts = NULL;
-
-  if (!fi->channel_is_trusted) {
-    mg_rpc_send_errorf(ri, 403, "unauthorized");
-    ri = NULL;
-    goto clean;
-  }
 
   json_scanf(args.p, args.len, ri->args_fmt, &path, &dev_type, &dev_opts,
              &fs_type, &fs_opts);
@@ -390,18 +359,13 @@ clean:
   free(fs_type);
   free(fs_opts);
   (void) cb_arg;
+  (void) fi;
 }
 
 static void mgos_fs_umount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
                                    struct mg_rpc_frame_info *fi,
                                    struct mg_str args) {
   char *path = NULL;
-
-  if (!fi->channel_is_trusted) {
-    mg_rpc_send_errorf(ri, 403, "unauthorized");
-    ri = NULL;
-    goto clean;
-  }
 
   json_scanf(args.p, args.len, ri->args_fmt, &path);
 
@@ -423,6 +387,7 @@ static void mgos_fs_umount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
 clean:
   free(path);
   (void) cb_arg;
+  (void) fi;
 }
 
 bool mgos_rpc_service_fs_init(void) {
