@@ -57,7 +57,7 @@ api_arch_uart.js 651
 
 ## FS.Get
 Returns file content. Arguments:
-```json
+```javascript
 {
   "filename": "foo.txt",    // Required. Name of the file to fetch.
   "offset": 0,              // Optional. Offset to begin with.
@@ -84,7 +84,7 @@ load('api_gpio.js');
 ## FS.Put
 Write data into file. Write is done either by overwriting an existing
 content, or by appending to the existing content. Arguments:
-```json
+```javascript
 {
   "filename": "foo.txt",    // Required. Name of the file to write to.
   "append": false,          // Optional. Overwrite or append.
@@ -99,7 +99,7 @@ small chunks, and calls `FS.Put` sequentially, appending content.
 
 ## FS.Remove
 Delete file. Arguments:
-```json
+```javascript
 {
   "filename": "foo.txt"    // Required. Name of the file to delete
 }
@@ -111,7 +111,7 @@ This RPC command has a shortcut: `mos rm`:
 
 ## FS.Mkfs
 Create filesystem. Arguments:
-```json
+```javascript
 {
   "dev_type": "spi_flash",          // Required. Filesystem driver name.
   "dev_opts": "...",                // Required. Device-specific options.
@@ -125,7 +125,7 @@ Example usage:
 
 ## FS.Mount
 Mount filesystem. Arguments:
-```json
+```javascript
 {
   "path": "/foo",           // Required. Directory name to attach to.
   "dev_type": "...",        // See FS.Mkfs above
@@ -140,7 +140,7 @@ Mount filesystem. Arguments:
 
 ## FS.Umount
 Unmout filesystem. Arguments:
-```json
+```javascript
 {
   "path": "/foo"           // Required. Mount point to detach.
 }
