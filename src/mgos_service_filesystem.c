@@ -17,8 +17,8 @@
 
 #include <stdlib.h>
 
-#include "mgos_service_filesystem.h"
 #include "mgos_rpc.h"
+#include "mgos_service_filesystem.h"
 
 #include "common/cs_dbg.h"
 #include "common/cs_file.h"
@@ -308,6 +308,24 @@ clean:
   (void) fi;
 }
 
+static void mgos_fs_rename_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                   struct mg_rpc_frame_info *fi,
+                                   struct mg_str args) {
+  char *src = NULL, *dst = NULL;
+  json_scanf(args.p, args.len, ri->args_fmt, &src, &dst);
+  if (src == NULL || dst == NULL) {
+    mg_rpc_send_errorf(ri, 400, "src and dst are required");
+  } else if (rename(src, dst) != 0) {
+    mg_rpc_send_errorf(ri, 500, "rename failed");
+  } else {
+    mg_rpc_send_responsef(ri, NULL);
+  }
+  free(src);
+  free(dst);
+  (void) cb_arg;
+  (void) fi;
+}
+
 static void mgos_fs_mkfs_handler(struct mg_rpc_request_info *ri, void *cb_arg,
                                  struct mg_rpc_frame_info *fi,
                                  struct mg_str args) {
@@ -417,6 +435,8 @@ bool mgos_rpc_service_fs_init(void) {
                      mgos_fs_put_handler, NULL);
   mg_rpc_add_handler(c, "FS.Remove", "{filename: %Q}", mgos_fs_remove_handler,
                      NULL);
+  mg_rpc_add_handler(c, "FS.Rename", "{src: %Q, dst: %Q}",
+                     mgos_fs_rename_handler, NULL);
   mg_rpc_add_handler(c, "FS.Mkfs",
                      "{dev_type: %Q, dev_opts: %Q, fs_type: %Q, fs_opts: %Q}",
                      mgos_fs_mkfs_handler, NULL);
