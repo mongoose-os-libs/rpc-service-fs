@@ -28,6 +28,7 @@
 #include "mgos_config_util.h"
 #include "mgos_sys_config.h"
 #include "mgos_vfs.h"
+#include "mgos_vfs_dev.h"
 
 #if MG_ENABLE_DIRECTORY_LISTING
 
@@ -329,19 +330,25 @@ static void mgos_fs_rename_handler(struct mg_rpc_request_info *ri, void *cb_arg,
 static void mgos_fs_mkfs_handler(struct mg_rpc_request_info *ri, void *cb_arg,
                                  struct mg_rpc_frame_info *fi,
                                  struct mg_str args) {
-  char *dev_type = NULL, *dev_opts = NULL;
+  bool res = false;
+  char *dev_name = NULL, *dev_type = NULL, *dev_opts = NULL;
   char *fs_type = NULL, *fs_opts = NULL;
 
-  json_scanf(args.p, args.len, ri->args_fmt, &dev_type, &dev_opts, &fs_type,
-             &fs_opts);
+  json_scanf(args.p, args.len, ri->args_fmt, &dev_name, &dev_type, &dev_opts,
+             &fs_type, &fs_opts);
 
-  if (dev_type == NULL || fs_type == NULL) {
-    mg_rpc_send_errorf(ri, 400, "dev_type and fs_type is required");
+  if ((dev_type == NULL && dev_name == NULL) || fs_type == NULL) {
+    mg_rpc_send_errorf(ri, 400, "fs_type is required");
     ri = NULL;
     goto clean;
   }
 
-  if (!mgos_vfs_mkfs(dev_type, dev_opts, fs_type, fs_opts)) {
+  if (dev_name != NULL) {
+    res = mgos_vfs_mkfs_dev_name(dev_name, fs_type, (fs_opts ? fs_opts : ""));
+  } else {
+    res = mgos_vfs_mkfs(dev_type, dev_opts, fs_type, (fs_opts ? fs_opts : ""));
+  }
+  if (!res) {
     mg_rpc_send_errorf(ri, 500, "mkfs failed");
     ri = NULL;
     goto clean;
@@ -351,6 +358,7 @@ static void mgos_fs_mkfs_handler(struct mg_rpc_request_info *ri, void *cb_arg,
   ri = NULL;
 
 clean:
+  free(dev_name);
   free(dev_type);
   free(dev_opts);
   free(fs_type);
@@ -362,20 +370,29 @@ clean:
 static void mgos_fs_mount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
                                   struct mg_rpc_frame_info *fi,
                                   struct mg_str args) {
+  bool res = false;
   char *path = NULL;
-  char *dev_type = NULL, *dev_opts = NULL;
+  char *dev_name = NULL, *dev_type = NULL, *dev_opts = NULL;
   char *fs_type = NULL, *fs_opts = NULL;
 
-  json_scanf(args.p, args.len, ri->args_fmt, &path, &dev_type, &dev_opts,
-             &fs_type, &fs_opts);
+  json_scanf(args.p, args.len, ri->args_fmt, &path, &dev_name, &dev_type,
+             &dev_opts, &fs_type, &fs_opts);
 
-  if (path == NULL || dev_type == NULL || fs_type == NULL) {
-    mg_rpc_send_errorf(ri, 400, "path, dev_type and fs_type is required");
+  if (path == NULL || (dev_type == NULL && dev_name == NULL) ||
+      fs_type == NULL) {
+    mg_rpc_send_errorf(ri, 400, "path and fs_type is required");
     ri = NULL;
     goto clean;
   }
 
-  if (!mgos_vfs_mount(path, dev_type, dev_opts, fs_type, fs_opts)) {
+  if (dev_name != NULL) {
+    res = mgos_vfs_mount_dev_name(path, dev_name, fs_type,
+                                  (fs_opts ? fs_opts : ""));
+  } else {
+    res = mgos_vfs_mount(path, dev_type, (dev_opts ? dev_opts : ""), fs_type,
+                         (fs_opts ? fs_opts : ""));
+  }
+  if (!res) {
     mg_rpc_send_errorf(ri, 500, "mount failed");
     ri = NULL;
     goto clean;
@@ -386,6 +403,7 @@ static void mgos_fs_mount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
 
 clean:
   free(path);
+  free(dev_name);
   free(dev_type);
   free(dev_opts);
   free(fs_type);
@@ -422,6 +440,64 @@ clean:
   (void) fi;
 }
 
+static void dev_create_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                               struct mg_rpc_frame_info *fi,
+                               struct mg_str args) {
+  char *name = NULL, *type = NULL, *opts = NULL;
+
+  json_scanf(args.p, args.len, ri->args_fmt, &name, &type, &opts);
+
+  if (name == NULL || type == NULL) {
+    mg_rpc_send_errorf(ri, 400, "name and type are required");
+    ri = NULL;
+    goto clean;
+  }
+
+  if (!mgos_vfs_dev_create_and_register(type, (opts ? opts : ""), name)) {
+    mg_rpc_send_errorf(ri, 500, "dev creation failed");
+    ri = NULL;
+    goto clean;
+  }
+
+  mg_rpc_send_responsef(ri, NULL);
+  ri = NULL;
+
+clean:
+  free(name);
+  free(type);
+  free(opts);
+  (void) cb_arg;
+  (void) fi;
+}
+
+static void dev_remove_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                               struct mg_rpc_frame_info *fi,
+                               struct mg_str args) {
+  char *name = NULL;
+
+  json_scanf(args.p, args.len, ri->args_fmt, &name);
+
+  if (name == NULL) {
+    mg_rpc_send_errorf(ri, 400, "name is required");
+    ri = NULL;
+    goto clean;
+  }
+
+  if (!mgos_vfs_dev_unregister(name)) {
+    mg_rpc_send_errorf(ri, 500, "dev removal failed");
+    ri = NULL;
+    goto clean;
+  }
+
+  mg_rpc_send_responsef(ri, NULL);
+  ri = NULL;
+
+clean:
+  free(name);
+  (void) cb_arg;
+  (void) fi;
+}
+
 bool mgos_rpc_service_fs_init(void) {
   struct mg_rpc *c = mgos_rpc_get_global();
 #if MG_ENABLE_DIRECTORY_LISTING
@@ -437,14 +513,20 @@ bool mgos_rpc_service_fs_init(void) {
                      NULL);
   mg_rpc_add_handler(c, "FS.Rename", "{src: %Q, dst: %Q}",
                      mgos_fs_rename_handler, NULL);
-  mg_rpc_add_handler(c, "FS.Mkfs",
-                     "{dev_type: %Q, dev_opts: %Q, fs_type: %Q, fs_opts: %Q}",
-                     mgos_fs_mkfs_handler, NULL);
   mg_rpc_add_handler(
-      c, "FS.Mount",
-      "{path: %Q, dev_type: %Q, dev_opts: %Q, fs_type: %Q, fs_opts: %Q}",
-      mgos_fs_mount_handler, NULL);
+      c, "FS.Mkfs",
+      /* dev_name OR type+opts */
+      "{dev_name: %Q, dev_type: %Q, dev_opts: %Q, fs_type: %Q, fs_opts: %Q}",
+      mgos_fs_mkfs_handler, NULL);
+  mg_rpc_add_handler(c, "FS.Mount",
+                     /* dev_name OR type+opts */
+                     "{path: %Q, dev_name: %Q, dev_type: %Q, dev_opts: %Q, "
+                     "fs_type: %Q, fs_opts: %Q}",
+                     mgos_fs_mount_handler, NULL);
   mg_rpc_add_handler(c, "FS.Umount", "{path: %Q}", mgos_fs_umount_handler,
                      NULL);
+  mg_rpc_add_handler(c, "Dev.Create", "{name: %Q, type: %Q, opts: %Q}",
+                     dev_create_handler, NULL);
+  mg_rpc_add_handler(c, "Dev.Remove", "{name: %Q}", dev_remove_handler, NULL);
   return true;
 }
