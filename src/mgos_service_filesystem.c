@@ -67,7 +67,7 @@ static void mgos_fs_list_common(const struct mg_str args,
       }
       if (ext) {
         cs_stat_t st;
-        char fname[MG_MAX_PATH];
+        char fname[MG_MAX_PATH + 2];
         snprintf(fname, sizeof(fname), "%s%s%s", (path ? path : "/"),
                  (path ? "/" : ""), dp->d_name);
         if (mg_stat(fname, &st) == 0) {
