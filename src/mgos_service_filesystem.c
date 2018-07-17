@@ -39,8 +39,8 @@
 #endif
 
 /* Handler for FS.List */
-static void mgos_fs_list_common(const struct mg_str args,
-                                struct mg_rpc_request_info *ri, bool ext) {
+static void rpc_fs_list_common(const struct mg_str args,
+                               struct mg_rpc_request_info *ri, bool ext) {
   struct mbuf fb;
   struct json_out out = JSON_OUT_MBUF(&fb);
   char *path = NULL;
@@ -93,26 +93,26 @@ static void mgos_fs_list_common(const struct mg_str args,
   free(path);
 }
 
-static void mgos_fs_list_handler(struct mg_rpc_request_info *ri, void *cb_arg,
-                                 struct mg_rpc_frame_info *fi,
-                                 struct mg_str args) {
-  mgos_fs_list_common(args, ri, false /* ext */);
+static void rpc_fs_list_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                struct mg_rpc_frame_info *fi,
+                                struct mg_str args) {
+  rpc_fs_list_common(args, ri, false /* ext */);
   (void) cb_arg;
   (void) fi;
 }
 
-static void mgos_fs_list_ext_handler(struct mg_rpc_request_info *ri,
-                                     void *cb_arg, struct mg_rpc_frame_info *fi,
-                                     struct mg_str args) {
-  mgos_fs_list_common(args, ri, true /* ext */);
+static void rpc_fs_list_ext_handler(struct mg_rpc_request_info *ri,
+                                    void *cb_arg, struct mg_rpc_frame_info *fi,
+                                    struct mg_str args) {
+  rpc_fs_list_common(args, ri, true /* ext */);
   (void) cb_arg;
   (void) fi;
 }
 #endif /* MG_ENABLE_DIRECTORY_LISTING */
 
-static void mgos_fs_get_handler(struct mg_rpc_request_info *ri, void *cb_arg,
-                                struct mg_rpc_frame_info *fi,
-                                struct mg_str args) {
+static void rpc_fs_get_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                               struct mg_rpc_frame_info *fi,
+                               struct mg_str args) {
   char *filename = NULL;
   long offset = 0, len = -1;
   long file_size = 0;
@@ -215,9 +215,9 @@ struct put_data {
   int len;
 };
 
-static void mgos_fs_put_handler(struct mg_rpc_request_info *ri, void *cb_arg,
-                                struct mg_rpc_frame_info *fi,
-                                struct mg_str args) {
+static void rpc_fs_put_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                               struct mg_rpc_frame_info *fi,
+                               struct mg_str args) {
   char *filename = NULL;
   int append = 0;
   FILE *fp = NULL;
@@ -274,9 +274,9 @@ clean:
   (void) fi;
 }
 
-static void mgos_fs_remove_handler(struct mg_rpc_request_info *ri, void *cb_arg,
-                                   struct mg_rpc_frame_info *fi,
-                                   struct mg_str args) {
+static void rpc_fs_remove_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                  struct mg_rpc_frame_info *fi,
+                                  struct mg_str args) {
   int ret = 0;
   char *filename = NULL;
 
@@ -309,9 +309,9 @@ clean:
   (void) fi;
 }
 
-static void mgos_fs_rename_handler(struct mg_rpc_request_info *ri, void *cb_arg,
-                                   struct mg_rpc_frame_info *fi,
-                                   struct mg_str args) {
+static void rpc_fs_rename_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                  struct mg_rpc_frame_info *fi,
+                                  struct mg_str args) {
   char *src = NULL, *dst = NULL;
   json_scanf(args.p, args.len, ri->args_fmt, &src, &dst);
   if (src == NULL || dst == NULL) {
@@ -327,9 +327,9 @@ static void mgos_fs_rename_handler(struct mg_rpc_request_info *ri, void *cb_arg,
   (void) fi;
 }
 
-static void mgos_fs_mkfs_handler(struct mg_rpc_request_info *ri, void *cb_arg,
-                                 struct mg_rpc_frame_info *fi,
-                                 struct mg_str args) {
+static void rpc_fs_mkfs_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                struct mg_rpc_frame_info *fi,
+                                struct mg_str args) {
   bool res = false;
   char *dev_name = NULL, *dev_type = NULL, *dev_opts = NULL;
   char *fs_type = NULL, *fs_opts = NULL;
@@ -367,9 +367,9 @@ clean:
   (void) fi;
 }
 
-static void mgos_fs_mount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
-                                  struct mg_rpc_frame_info *fi,
-                                  struct mg_str args) {
+static void rpc_fs_mount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                 struct mg_rpc_frame_info *fi,
+                                 struct mg_str args) {
   bool res = false;
   char *path = NULL;
   char *dev_name = NULL, *dev_type = NULL, *dev_opts = NULL;
@@ -412,9 +412,9 @@ clean:
   (void) fi;
 }
 
-static void mgos_fs_umount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
-                                   struct mg_rpc_frame_info *fi,
-                                   struct mg_str args) {
+static void rpc_fs_umount_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                  struct mg_rpc_frame_info *fi,
+                                  struct mg_str args) {
   char *path = NULL;
 
   json_scanf(args.p, args.len, ri->args_fmt, &path);
@@ -440,9 +440,9 @@ clean:
   (void) fi;
 }
 
-static void dev_create_handler(struct mg_rpc_request_info *ri, void *cb_arg,
-                               struct mg_rpc_frame_info *fi,
-                               struct mg_str args) {
+static void rpc_dev_create_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                   struct mg_rpc_frame_info *fi,
+                                   struct mg_str args) {
   char *name = NULL, *type = NULL, *opts = NULL;
 
   json_scanf(args.p, args.len, ri->args_fmt, &name, &type, &opts);
@@ -470,9 +470,127 @@ clean:
   (void) fi;
 }
 
-static void dev_remove_handler(struct mg_rpc_request_info *ri, void *cb_arg,
-                               struct mg_rpc_frame_info *fi,
-                               struct mg_str args) {
+static void rpc_dev_read_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                 struct mg_rpc_frame_info *fi,
+                                 struct mg_str args) {
+  char *dev_name = NULL, *data = NULL;
+  enum mgos_vfs_dev_err r;
+  unsigned long offset = 0, len = 0;
+  struct mgos_vfs_dev *dev = NULL;
+
+  json_scanf(args.p, args.len, ri->args_fmt, &dev_name, &offset, &len);
+
+  if (dev_name == NULL || len == 0) {
+    mg_rpc_send_errorf(ri, 400, "name and len are required");
+    goto clean;
+  }
+
+  if ((dev = mgos_vfs_dev_open(dev_name)) == NULL) {
+    mg_rpc_send_errorf(ri, 500, "dev open failed");
+    goto clean;
+  }
+
+  if ((data = malloc(len)) == NULL) {
+    mg_rpc_send_errorf(ri, 500, "out of memory");
+    goto clean;
+  }
+
+  if ((r = mgos_vfs_dev_read(dev, offset, len, data)) != 0) {
+    mg_rpc_send_errorf(ri, 500, "read error: %d", r);
+    goto clean;
+  }
+
+  mg_rpc_send_responsef(ri, "{data: %V}", data, len);
+
+clean:
+  mgos_vfs_dev_close(dev);
+  free(dev_name);
+  free(data);
+  (void) cb_arg;
+  (void) fi;
+}
+
+static void rpc_dev_write_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                  struct mg_rpc_frame_info *fi,
+                                  struct mg_str args) {
+  char *dev_name = NULL, *data = NULL;
+  enum mgos_vfs_dev_err r;
+  unsigned long offset = 0, erase_len = 0;
+  int len = 0;
+  struct mgos_vfs_dev *dev = NULL;
+
+  json_scanf(args.p, args.len, ri->args_fmt, &dev_name, &offset, &data, &len,
+             &erase_len);
+
+  if (dev_name == NULL || data == NULL) {
+    mg_rpc_send_errorf(ri, 400, "name and data are required");
+    goto clean;
+  }
+
+  if ((dev = mgos_vfs_dev_open(dev_name)) == NULL) {
+    mg_rpc_send_errorf(ri, 500, "dev open failed");
+    goto clean;
+  }
+
+  if (erase_len > 0) {
+    if ((r = mgos_vfs_dev_erase(dev, offset, erase_len)) != 0) {
+      mg_rpc_send_errorf(ri, 500, "erase error: %d", r);
+      goto clean;
+    }
+  }
+
+  if ((r = mgos_vfs_dev_write(dev, offset, len, data)) != 0) {
+    mg_rpc_send_errorf(ri, 500, "write error: %d", r);
+    goto clean;
+  }
+
+  mg_rpc_send_responsef(ri, NULL);
+
+clean:
+  mgos_vfs_dev_close(dev);
+  free(dev_name);
+  free(data);
+  (void) cb_arg;
+  (void) fi;
+}
+
+static void rpc_dev_erase_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                  struct mg_rpc_frame_info *fi,
+                                  struct mg_str args) {
+  char *dev_name = NULL;
+  enum mgos_vfs_dev_err r;
+  unsigned long offset = 0, len = 0;
+  struct mgos_vfs_dev *dev = NULL;
+
+  json_scanf(args.p, args.len, ri->args_fmt, &dev_name, &offset, &len);
+
+  if (dev_name == NULL || len == 0) {
+    mg_rpc_send_errorf(ri, 400, "name and len are required");
+    goto clean;
+  }
+
+  if ((dev = mgos_vfs_dev_open(dev_name)) == NULL) {
+    mg_rpc_send_errorf(ri, 500, "dev open failed");
+    goto clean;
+  }
+
+  if ((r = mgos_vfs_dev_erase(dev, offset, len)) != 0) {
+    mg_rpc_send_errorf(ri, 500, "erase error: %d", r);
+    goto clean;
+  }
+
+  mg_rpc_send_responsef(ri, NULL);
+
+clean:
+  mgos_vfs_dev_close(dev);
+  free(dev_name);
+  (void) cb_arg;
+  (void) fi;
+}
+
+static void rpc_dev_remove_handler(struct mg_rpc_request_info *ri, void *cb_arg,
+                                   struct mg_rpc_frame_info *fi,
+                                   struct mg_str args) {
   char *name = NULL;
 
   json_scanf(args.p, args.len, ri->args_fmt, &name);
@@ -501,32 +619,39 @@ clean:
 bool mgos_rpc_service_fs_init(void) {
   struct mg_rpc *c = mgos_rpc_get_global();
 #if MG_ENABLE_DIRECTORY_LISTING
-  mg_rpc_add_handler(c, "FS.List", "{path: %Q}", mgos_fs_list_handler, NULL);
-  mg_rpc_add_handler(c, "FS.ListExt", "{path: %Q}", mgos_fs_list_ext_handler,
+  mg_rpc_add_handler(c, "FS.List", "{path: %Q}", rpc_fs_list_handler, NULL);
+  mg_rpc_add_handler(c, "FS.ListExt", "{path: %Q}", rpc_fs_list_ext_handler,
                      NULL);
 #endif
   mg_rpc_add_handler(c, "FS.Get", "{filename: %Q, offset: %ld, len: %ld}",
-                     mgos_fs_get_handler, NULL);
+                     rpc_fs_get_handler, NULL);
   mg_rpc_add_handler(c, "FS.Put", "{filename: %Q, data: %V, append: %B}",
-                     mgos_fs_put_handler, NULL);
-  mg_rpc_add_handler(c, "FS.Remove", "{filename: %Q}", mgos_fs_remove_handler,
+                     rpc_fs_put_handler, NULL);
+  mg_rpc_add_handler(c, "FS.Remove", "{filename: %Q}", rpc_fs_remove_handler,
                      NULL);
   mg_rpc_add_handler(c, "FS.Rename", "{src: %Q, dst: %Q}",
-                     mgos_fs_rename_handler, NULL);
+                     rpc_fs_rename_handler, NULL);
   mg_rpc_add_handler(
       c, "FS.Mkfs",
       /* dev_name OR type+opts */
       "{dev_name: %Q, dev_type: %Q, dev_opts: %Q, fs_type: %Q, fs_opts: %Q}",
-      mgos_fs_mkfs_handler, NULL);
+      rpc_fs_mkfs_handler, NULL);
   mg_rpc_add_handler(c, "FS.Mount",
                      /* dev_name OR type+opts */
                      "{path: %Q, dev_name: %Q, dev_type: %Q, dev_opts: %Q, "
                      "fs_type: %Q, fs_opts: %Q}",
-                     mgos_fs_mount_handler, NULL);
-  mg_rpc_add_handler(c, "FS.Umount", "{path: %Q}", mgos_fs_umount_handler,
-                     NULL);
+                     rpc_fs_mount_handler, NULL);
+  mg_rpc_add_handler(c, "FS.Umount", "{path: %Q}", rpc_fs_umount_handler, NULL);
   mg_rpc_add_handler(c, "Dev.Create", "{name: %Q, type: %Q, opts: %Q}",
-                     dev_create_handler, NULL);
-  mg_rpc_add_handler(c, "Dev.Remove", "{name: %Q}", dev_remove_handler, NULL);
+                     rpc_dev_create_handler, NULL);
+  mg_rpc_add_handler(c, "Dev.Read", "{name: %Q, offset: %lu, len: %lu}",
+                     rpc_dev_read_handler, NULL);
+  mg_rpc_add_handler(c, "Dev.Write",
+                     "{name: %Q, offset: %lu, data: %V, erase_len: %lu}",
+                     rpc_dev_write_handler, NULL);
+  mg_rpc_add_handler(c, "Dev.Erase", "{name: %Q, offset: %lu, len: %lu}",
+                     rpc_dev_erase_handler, NULL);
+  mg_rpc_add_handler(c, "Dev.Remove", "{name: %Q}", rpc_dev_remove_handler,
+                     NULL);
   return true;
 }
