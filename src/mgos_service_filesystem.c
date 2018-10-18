@@ -25,6 +25,8 @@
 #include "common/json_utils.h"
 #include "common/mg_str.h"
 
+#include "mongoose.h"
+
 #include "mgos_config_util.h"
 #include "mgos_sys_config.h"
 #include "mgos_vfs.h"
