@@ -224,9 +224,10 @@ static void rpc_fs_put_handler(struct mg_rpc_request_info *ri, void *cb_arg,
   int append = 0;
   FILE *fp = NULL;
   struct put_data data = {NULL, 0};
+  long offset = -1;
 
-  json_scanf(args.p, args.len, ri->args_fmt, &filename, &data.p, &data.len,
-             &append);
+  json_scanf(args.p, args.len, ri->args_fmt, &filename, &offset, &data.p,
+             &data.len, &append);
 
   /* check arguments */
   if (filename == NULL) {
@@ -236,7 +237,13 @@ static void rpc_fs_put_handler(struct mg_rpc_request_info *ri, void *cb_arg,
   }
 
   /* try to open file */
-  fp = fopen(filename, append ? "ab" : "wb");
+  if (offset < 0) {
+    fp = fopen(filename, append ? "ab" : "wb");
+  } else if (offset == 0) {
+    fp = fopen(filename, "wb");
+  } else {
+    fp = fopen(filename, "r+");
+  }
 
   if (fp == NULL) {
     mg_rpc_send_errorf(ri, 400, "failed to open file \"%s\"", filename);
@@ -244,8 +251,14 @@ static void rpc_fs_put_handler(struct mg_rpc_request_info *ri, void *cb_arg,
     goto clean;
   }
 
-  if (!append) {
+  if (!append || offset == 0) {
     LOG(LL_INFO, ("Receiving %s", filename));
+  }
+
+  if (offset > 0 && fseek(fp, offset, SEEK_SET) != 0) {
+    mg_rpc_send_errorf(ri, 400, "failed to seek to %ld", offset);
+    ri = NULL;
+    goto clean;
   }
 
   if (fwrite(data.p, 1, data.len, fp) != (size_t) data.len) {
@@ -254,8 +267,6 @@ static void rpc_fs_put_handler(struct mg_rpc_request_info *ri, void *cb_arg,
     goto clean;
   }
 
-  LOG(LL_INFO, ("%s %d bytes to %s", append ? "Appended" : "Written", data.len,
-                filename));
   mg_rpc_send_responsef(ri, NULL);
   ri = NULL;
 
@@ -627,7 +638,8 @@ bool mgos_rpc_service_fs_init(void) {
 #endif
   mg_rpc_add_handler(c, "FS.Get", "{filename: %Q, offset: %ld, len: %ld}",
                      rpc_fs_get_handler, NULL);
-  mg_rpc_add_handler(c, "FS.Put", "{filename: %Q, data: %V, append: %B}",
+  mg_rpc_add_handler(c, "FS.Put",
+                     "{filename: %Q, offset: %ld, data: %V, append: %B}",
                      rpc_fs_put_handler, NULL);
   mg_rpc_add_handler(c, "FS.Remove", "{filename: %Q}", rpc_fs_remove_handler,
                      NULL);
