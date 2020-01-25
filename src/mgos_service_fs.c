@@ -146,14 +146,18 @@ static void rpc_fs_get_handler(struct mg_rpc_request_info *ri, void *cb_arg,
   }
 
   /* determine file size */
-  cs_stat_t st;
-  if (mg_stat(filename, &st) != 0) {
-    mg_rpc_send_errorf(ri, 500, "stat");
+  if (fseek(fp, 0, SEEK_END) != 0) {
+    mg_rpc_send_errorf(ri, 500, "fseek");
     ri = NULL;
     goto clean;
   }
 
-  file_size = (long) st.st_size;
+  file_size = (long) ftell(fp);
+  if (file_size < 0) {
+    mg_rpc_send_errorf(ri, 500, "ftell");
+    ri = NULL;
+    goto clean;
+  }
 
   /* determine the size of the chunk to read */
   if (offset > file_size) {
