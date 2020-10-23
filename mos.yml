@@ -5,10 +5,9 @@ version: 1.0
 manifest_version: 2017-09-29
 sources:
   - src
-includes:
-  - include
 libs:
   - origin: https://github.com/mongoose-os-libs/rpc-common
+  - origin: https://github.com/mongoose-os-libs/vfs-common
 tags:
   - rpc
   - filesystem
